@@ -1,9 +1,12 @@
 language: python
+matrix:
+  include:
+    - python: 3.6
+    - python: 3.7
+      dist: xenial
+      sudo: true
 cache:
   - pip
-python:
-  - 3.6
-  - 3.7
 install:
   - pip install -U setuptools
   - pip install tox-travis
