@@ -35,7 +35,9 @@ def test_integer_minimum():
     test_schema.validate({'age': 1})
 
     assert test_schema.is_valid is False
-    assert test_schema.as_dict() == {'age': [f'must be greater than {test_schema.age.minimum}']}
+
+    expected_error = {'age': [f'must be greater than {test_schema.age.minimum}']}
+    assert test_schema.as_dict() == expected_error
 
 
 def test_integer_bad_type():

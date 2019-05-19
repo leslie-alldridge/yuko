@@ -1,5 +1,0 @@
-pytest
-orjson
-flake8
-pep8-naming
-isort
