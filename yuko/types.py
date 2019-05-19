@@ -28,19 +28,19 @@ class Number(Schema):
         self.required = required
         self._errors = []
 
-    def key_not_present(self, key):
+    def key_not_present(self, key: str) -> typing.NoReturn:
         self.errors[key] = [self.KEY_NOT_PRESENT_ERROR]
 
-    def maximum_is_valid(self, value):
+    def maximum_is_valid(self, value: int) -> bool:
         return value <= self.maximum
 
-    def minimum_is_valid(self, value):
+    def minimum_is_valid(self, value: int) -> bool:
         return value >= self.minimum
 
-    def between_is_valid(self, value):
+    def between_is_valid(self, value: int) -> bool:
         return self.between[0] <= value <= self.between[1]
 
-    def push_error(self, error):
+    def push_error(self, error: str) -> typing.NoReturn:
         self._errors.append(error)
 
 
@@ -61,7 +61,7 @@ class Integer(Number, AbstractValidator):
             required: bool = None):
         super().__init__(minimum, maximum, between, required)
 
-    def process(self, key: str, value: typing.Any):
+    def process(self, key: str, value: typing.Any) -> typing.NoReturn:
         if not isinstance(value, self._INSTANCE):
             self._errors.append(self.INVALID_TYPE)
             self.errors[key] = self._errors
@@ -84,5 +84,5 @@ class Integer(Number, AbstractValidator):
 
         self.errors[key] = self._errors
 
-    def key_not_present(self, key):
+    def key_not_present(self, key: str) -> typing.NoReturn:
         super().key_not_present(key)

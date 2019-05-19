@@ -5,7 +5,7 @@ import typing
 
 class AbstractValidator:
     @abc.abstractmethod
-    def process(self, key: str, value: typing.Any):
+    def process(self, key: str, value: typing.Any) -> typing.NoReturn:
         """Abstract method for a validation class
 
             Args:
@@ -16,6 +16,6 @@ class AbstractValidator:
         pass
 
     @abc.abstractmethod
-    def key_not_present(self, key):
+    def key_not_present(self, key: str) -> typing.NoReturn:
         """Sets an error if a key doesn't present in a data object."""
         pass
