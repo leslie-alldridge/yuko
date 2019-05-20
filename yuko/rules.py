@@ -28,8 +28,8 @@ class Number(RuleInterface):
             maximum: int = None,
             between: tuple = None,
             required: bool = None,
-            allow_null=False,
-            only_positive=False):
+            allow_null: bool = False,
+            only_positive: bool = False):
 
         self.minimum = minimum
         self.maximum = maximum
@@ -70,8 +70,8 @@ class Integer(Number):
             maximum: int = None,
             between: tuple = None,
             required: bool = None,
-            allow_null=False,
-            only_positive=False):
+            allow_null: bool = False,
+            only_positive: bool = False):
         super().__init__(
             minimum=minimum,
             maximum=maximum,
