@@ -22,8 +22,8 @@ class Schema:
     """
 
     def __init__(self):
-        self.errors = {}
-        self.is_valid = True
+        self.__errors = {}
+        self.__has_errors = False
 
     def validate(self, data: dict) -> typing.NoReturn:
         """TODO: Add a comment"""
@@ -31,25 +31,29 @@ class Schema:
 
             rule = self.__class__.__dict__[key]
             if key not in data and rule.required:
-                self.errors[key] = rule.key_not_present()
+                self.__errors[key] = rule.key_not_present()
 
             if key in data:
                 rule_errors = self.__class__.__dict__[key].process(key, data[key])
                 if rule_errors:
-                    self.errors[key] = rule_errors
+                    self.__errors[key] = rule_errors
 
-        if self.errors:
-            self.is_valid = False
+        if self.__errors:
+            self.__has_errors = True
+
+    @property
+    def has_errors(self):
+        return self.__has_errors
 
     def as_json(self) -> typing.ByteString:
         """Returns a serialized Python object with errors"""
-        return orjson.dumps(self.errors)
+        return orjson.dumps(self.__errors)
 
     def as_dict(self) -> typing.Dict:
         """Returns dictionary with errors"""
-        return self.errors
+        return self.__errors
 
-    def __collect_rules(self) -> typing.Dict:
+    def __collect_rules(self) -> typing.List[str]:
         """TODO: Add a comment"""
         rules = [rule for rule in self.__class__.__dict__ if not rule.startswith('__')]
         return rules

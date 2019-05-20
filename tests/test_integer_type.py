@@ -1,8 +1,8 @@
 """Test integer type"""
 import orjson
 
-from yuko.schema import Schema
 from yuko.rules import Integer
+from yuko.schema import Schema
 
 
 def test_integer_allow_null():
@@ -12,19 +12,19 @@ def test_integer_allow_null():
     test_schema = TestSchema()
     test_schema.validate({'age': None})
 
-    assert test_schema.is_valid is True
+    assert test_schema.has_errors is False
     assert test_schema.as_dict() == {}
 
     test_schema.validate({'age': 3})
 
-    assert test_schema.is_valid is True
+    assert test_schema.has_errors is False
     assert test_schema.as_dict() == {}
 
     test_schema.validate({'age': 10})
 
     expected_error = {'age': [f'must be less than {test_schema.age.maximum}']}
 
-    assert test_schema.is_valid is False
+    assert test_schema.has_errors is True
     assert test_schema.as_dict() == expected_error
 
 
@@ -36,7 +36,7 @@ def test_integer_minimum():
     test_schema.validate({'age': 0})
 
     expected_error = {'age': [f'must be greater than {test_schema.age.minimum}']}
-    assert test_schema.is_valid is False
+    assert test_schema.has_errors is True
     assert test_schema.as_dict() == expected_error
 
 
@@ -49,7 +49,7 @@ def test_integer_maximum():
 
     expected_error = {'age': [f'must be less than {test_schema.age.maximum}']}
 
-    assert test_schema.is_valid is False
+    assert test_schema.has_errors is True
     assert test_schema.as_dict() == expected_error
 
 
@@ -60,7 +60,7 @@ def test_integer_required():
     test_schema = TestSchema()
     test_schema.validate({'another': 'key'})
 
-    assert test_schema.is_valid is False
+    assert test_schema.has_errors is True
     assert test_schema.as_dict() == {'age': ['can not be blank']}
 
 
@@ -71,11 +71,10 @@ def test_integer_between():
     test_schema = TestSchema()
     test_schema.validate({'age': 44})
 
-    assert test_schema.is_valid is False
-
     error = f'must be between {test_schema.age.between[0]} ' \
         f'and {test_schema.age.between[1]}'
 
+    assert test_schema.has_errors is True
     assert test_schema.as_dict() == {'age': [error]}
 
 
@@ -86,7 +85,7 @@ def test_integer_bad_type():
     test_schema = TestSchema()
     test_schema.validate({'age': 'str'})
 
-    assert test_schema.is_valid is False
+    assert test_schema.has_errors is True
     assert test_schema.as_dict() == {'age': ['must be an integer']}
 
 
@@ -101,7 +100,7 @@ def test_integer_json():
         {'age': [f'must be less than {test_schema.age.maximum}']}
     )
 
-    assert test_schema.is_valid is False
+    assert test_schema.has_errors is True
     assert test_schema.as_json() == expected_error
 
 
@@ -115,7 +114,7 @@ def test_integer_two_values():
 
     expected_error = {'price': [f'must be less than {test_schema.price.maximum}']}
 
-    assert test_schema.is_valid is False
+    assert test_schema.has_errors is True
     assert test_schema.as_dict() == expected_error
 
 
@@ -132,7 +131,7 @@ def test_integer_invalid_validation_two_values():
         'price': [f'must be less than {test_schema.price.maximum}'],
     }
 
-    assert test_schema.is_valid is False
+    assert test_schema.has_errors is True
     assert test_schema.as_dict() == expected_errors
 
 
@@ -149,5 +148,5 @@ def test_integer_required_two_values():
         'price': ['can not be blank'],
     }
 
-    assert test_schema.is_valid is False
+    assert test_schema.has_errors is True
     assert test_schema.as_dict() == expected_errors
