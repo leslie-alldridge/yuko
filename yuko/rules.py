@@ -1,35 +1,40 @@
 """Validation type classes"""
 import typing
 
-from .schema import Schema
-from .validator import AbstractValidator
+from .rule import RuleInterface
 
 
-class Number(Schema):
+class Number(RuleInterface):
     # TODO: Add description for this class
 
     # Error messages
-    INVALID_MAXIMUM_LENGTH_ERROR = 'must be not greater than'
+    INVALID_MAXIMUM_LENGTH_ERROR = 'must be less than'
     INVALID_MINIMUM_LENGTH_ERROR = 'must be greater than'
     KEY_NOT_PRESENT_ERROR = 'can not be blank'
 
-    __slots__ = ('minimum', 'maximum', 'between', '_errors', 'required')
+    __slots__ = (
+        'minimum',
+        'maximum',
+        'between',
+        '_errors',
+        'required',
+        'allow_null'
+    )
 
     def __init__(
             self,
             minimum: int = None,
             maximum: int = None,
             between: tuple = None,
-            required: bool = None):
+            required: bool = None,
+            allow_null=False):
 
         self.minimum = minimum
         self.maximum = maximum
         self.between = between
         self.required = required
+        self.allow_null = allow_null
         self._errors = []
-
-    def key_not_present(self, key: str) -> typing.NoReturn:
-        self.errors[key] = [self.KEY_NOT_PRESENT_ERROR]
 
     def maximum_is_valid(self, value: int) -> bool:
         return value <= self.maximum
@@ -40,11 +45,11 @@ class Number(Schema):
     def between_is_valid(self, value: int) -> bool:
         return self.between[0] <= value <= self.between[1]
 
-    def push_error(self, error: str) -> typing.NoReturn:
-        self._errors.append(error)
+    def key_not_present(self) -> typing.List[str]:
+        return [self.KEY_NOT_PRESENT_ERROR]
 
 
-class Integer(Number, AbstractValidator):
+class Integer(Number):
     # TODO: Add description for this class
 
     # Base type of a correct value
@@ -58,31 +63,38 @@ class Integer(Number, AbstractValidator):
             minimum: int = None,
             maximum: int = None,
             between: tuple = None,
-            required: bool = None):
-        super().__init__(minimum, maximum, between, required)
+            required: bool = None,
+            allow_null=False):
+        super().__init__(minimum, maximum, between, required, allow_null)
 
-    def process(self, key: str, value: typing.Any) -> typing.NoReturn:
-        if not isinstance(value, self._INSTANCE):
-            self._errors.append(self.INVALID_TYPE)
-            self.errors[key] = self._errors
+    def process(self, key: str, value: int) -> typing.List[str]:
+        if self.allow_null and value is None:
             return
 
+        if not isinstance(value, self._INSTANCE):
+            self._errors.append(self.INVALID_TYPE)
+            return self._errors
+
         if self.maximum and not self.maximum_is_valid(value):
-            self.push_error(f'{self.INVALID_MAXIMUM_LENGTH_ERROR} {self.maximum}')
+            self._errors.append(
+                f'{self.INVALID_MAXIMUM_LENGTH_ERROR} {self.maximum}'
+            )
 
         if self.minimum and not self.minimum_is_valid(value):
-            self.push_error(f'{self.INVALID_MINIMUM_LENGTH_ERROR} {self.minimum}')
+            self._errors.append(
+                f'{self.INVALID_MINIMUM_LENGTH_ERROR} {self.minimum}'
+            )
 
         if self.between and not self.between_is_valid(value):
-            self.push_error(
-                f'value must be between {self.between[0]}'
+            self._errors.append(
+                f'must be between {self.between[0]}'
                 f' and {self.between[1]}'
             )
 
         if not self._errors:
             return
 
-        self.errors[key] = self._errors
+        return self._errors
 
-    def key_not_present(self, key: str) -> typing.NoReturn:
-        super().key_not_present(key)
+    def key_not_present(self) -> typing.List[str]:
+        return super().key_not_present()

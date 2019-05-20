@@ -20,34 +20,40 @@ class Schema:
         Methods::
             # TODO: Add description for all instance methods.
     """
-    errors = {}
-    is_valid = True
+
+    def __init__(self):
+        self.__errors = {}
+        self.__has_errors = False
 
     def validate(self, data: dict) -> typing.NoReturn:
         """TODO: Add a comment"""
-        for key, validator in self.__collect_not_present_keys().items():
-            if key not in data and validator.required:
-                validator.key_not_present(key)
+        for key in self.__collect_rules():
 
-        for key, value in self.__class__.__dict__.items():
+            rule = self.__class__.__dict__[key]
+            if key not in data and rule.required:
+                self.__errors[key] = rule.key_not_present()
+
             if key in data:
-                self.__class__.__dict__[key].process(key, data[key])
+                rule_errors = self.__class__.__dict__[key].process(key, data[key])
+                if rule_errors:
+                    self.__errors[key] = rule_errors
 
-        if self.errors:
-            self.is_valid = False
+        if self.__errors:
+            self.__has_errors = True
+
+    @property
+    def has_errors(self):
+        return self.__has_errors
 
     def as_json(self) -> typing.ByteString:
         """Returns a serialized Python object with errors"""
-        return orjson.dumps(self.errors)
+        return orjson.dumps(self.__errors)
 
     def as_dict(self) -> typing.Dict:
         """Returns dictionary with errors"""
-        return self.errors
+        return self.__errors
 
-    def __collect_not_present_keys(self) -> typing.Dict:
+    def __collect_rules(self) -> typing.List[str]:
         """TODO: Add a comment"""
-        values = [value for value
-                  in self.__class__.__dict__ if not value.startswith('__')]
-
-        validators = {value: self.__class__.__dict__[value] for value in values}
-        return validators
+        rules = [rule for rule in self.__class__.__dict__ if not rule.startswith('__')]
+        return rules
