@@ -2,7 +2,7 @@
 import orjson
 
 from yuko.schema import Schema
-from yuko.types import Integer
+from yuko.rules import Integer
 
 
 def test_integer_allow_null():
