@@ -150,3 +150,29 @@ def test_integer_required_two_values():
 
     assert test_schema.has_errors is True
     assert test_schema.as_dict() == expected_errors
+
+
+def test_integer_only_positive_invalid():
+    class TestSchema(Schema):
+        age = Integer(only_positive=True)
+
+    test_schema = TestSchema()
+    test_schema.validate({'age': -1})
+
+    expected_errors = {
+        'age': ['must be positive']
+    }
+
+    assert test_schema.has_errors is True
+    assert test_schema.as_dict() == expected_errors
+
+
+def test_integer_only_positive_valid():
+    class TestSchema(Schema):
+        age = Integer(only_positive=True)
+
+    test_schema = TestSchema()
+    test_schema.validate({'age': 0})
+
+    assert test_schema.has_errors is False
+    assert test_schema.as_dict() == {}

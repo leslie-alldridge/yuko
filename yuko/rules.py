@@ -8,8 +8,9 @@ class Number(RuleInterface):
     # TODO: Add description for this class
 
     # Error messages
-    INVALID_MAXIMUM_LENGTH_ERROR = 'must be less than'
-    INVALID_MINIMUM_LENGTH_ERROR = 'must be greater than'
+    MAXIMUM_LENGTH_ERROR = 'must be less than'
+    MINIMUM_LENGTH_ERROR = 'must be greater than'
+    NOT_POSITIVE_ERROR = 'must be positive'
     KEY_NOT_PRESENT_ERROR = 'can not be blank'
 
     __slots__ = (
@@ -27,13 +28,15 @@ class Number(RuleInterface):
             maximum: int = None,
             between: tuple = None,
             required: bool = None,
-            allow_null=False):
+            allow_null=False,
+            only_positive=False):
 
         self.minimum = minimum
         self.maximum = maximum
         self.between = between
         self.required = required
         self.allow_null = allow_null
+        self.only_positive = only_positive
         self._errors = []
 
     def maximum_is_valid(self, value: int) -> bool:
@@ -44,6 +47,9 @@ class Number(RuleInterface):
 
     def between_is_valid(self, value: int) -> bool:
         return self.between[0] <= value <= self.between[1]
+
+    def positive_is_valid(self, value: int) -> bool:
+        return value >= 0
 
     def key_not_present(self) -> typing.List[str]:
         return [self.KEY_NOT_PRESENT_ERROR]
@@ -64,8 +70,15 @@ class Integer(Number):
             maximum: int = None,
             between: tuple = None,
             required: bool = None,
-            allow_null=False):
-        super().__init__(minimum, maximum, between, required, allow_null)
+            allow_null=False,
+            only_positive=False):
+        super().__init__(
+            minimum=minimum,
+            maximum=maximum,
+            between=between,
+            required=required,
+            allow_null=allow_null,
+            only_positive=only_positive)
 
     def process(self, key: str, value: int) -> typing.List[str]:
         if self.allow_null and value is None:
@@ -75,14 +88,17 @@ class Integer(Number):
             self._errors.append(self.INVALID_TYPE)
             return self._errors
 
+        if self.only_positive and not self.positive_is_valid(value):
+            self._errors.append(f'{self.NOT_POSITIVE_ERROR}')
+
         if self.maximum and not self.maximum_is_valid(value):
             self._errors.append(
-                f'{self.INVALID_MAXIMUM_LENGTH_ERROR} {self.maximum}'
+                f'{self.MAXIMUM_LENGTH_ERROR} {self.maximum}'
             )
 
         if self.minimum and not self.minimum_is_valid(value):
             self._errors.append(
-                f'{self.INVALID_MINIMUM_LENGTH_ERROR} {self.minimum}'
+                f'{self.MINIMUM_LENGTH_ERROR} {self.minimum}'
             )
 
         if self.between and not self.between_is_valid(value):
