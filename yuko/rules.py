@@ -51,6 +51,9 @@ class Number(RuleInterface):
     def positive_is_valid(self, value: int) -> bool:
         return value >= 0
 
+    def is_correct_type(self, obj: typing.Any, type_: typing.Any) -> bool:
+        return isinstance(obj, type_)
+
     def key_not_present(self) -> typing.List[str]:
         return [self.KEY_NOT_PRESENT_ERROR]
 
@@ -62,7 +65,7 @@ class Integer(Number):
     _INSTANCE = int
 
     # Error messages
-    INVALID_TYPE = 'must be an integer'
+    INVALID_TYPE_ERROR = f'must be an {_INSTANCE.__name__}eger'
 
     def __init__(
             self,
@@ -84,8 +87,8 @@ class Integer(Number):
         if self.allow_null and value is None:
             return
 
-        if not isinstance(value, self._INSTANCE):
-            self._errors.append(self.INVALID_TYPE)
+        if not self.is_correct_type(value, self._INSTANCE):
+            self._errors.append(self.INVALID_TYPE_ERROR)
             return self._errors
 
         if self.only_positive and not self.positive_is_valid(value):
@@ -111,6 +114,38 @@ class Integer(Number):
             return
 
         return self._errors
+
+    def key_not_present(self) -> typing.List[str]:
+        return super().key_not_present()
+
+
+class Float(Number):
+    # TODO: Add description for this class
+
+    # Base type of a correct value
+    _INSTANCE = float
+
+    # Error messages
+    INVALID_TYPE_ERROR = f'must be an {_INSTANCE.__name__}'
+
+    def __init__(
+            self,
+            minimum: float = None,
+            maximum: float = None,
+            between: tuple = None,
+            required: bool = None,
+            allow_null: bool = False,
+            only_positive: bool = False):
+        super().__init__(
+            minimum,
+            maximum,
+            between,
+            required,
+            allow_null,
+            only_positive)
+
+    def process(self, key: str, value: float) -> typing.List[str]:
+        pass
 
     def key_not_present(self) -> typing.List[str]:
         return super().key_not_present()
