@@ -20,8 +20,10 @@ def test_float_maximum():
     test_schema = TestSchema()
     test_schema.validate({'price': 10.11})
 
+    error_msg = f'must be less than {test_schema.price.maximum}'
+
     assert test_schema.has_errors is True
-    assert test_schema.as_dict() == {'price': [f'must be less than {test_schema.price.maximum}']}
+    assert test_schema.as_dict() == {'price': [error_msg]}
 
 
 def test_float_minimum():
@@ -31,8 +33,10 @@ def test_float_minimum():
     test_schema = TestSchema()
     test_schema.validate({'price': 9.99})
 
+    error_msg = f'must be greater than {test_schema.price.minimum}'
+
     assert test_schema.has_errors is True
-    assert test_schema.as_dict() == {'price': [f'must be greater than {test_schema.price.minimum}']}
+    assert test_schema.as_dict() == {'price': [error_msg]}
 
 
 def test_float_between():
