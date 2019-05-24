@@ -77,10 +77,10 @@ def test_float_only_positive():
 
 def test_float_valid():
     class TestSchema(Schema):
-        price = Float(required=True, maximum=10, minimum=1)
+        price = Float(required=True, maximum=10.00, minimum=1.00)
 
     test_schema = TestSchema()
-    test_schema.validate({'price': 8})
+    test_schema.validate({'price': 8.00})
 
     assert test_schema.has_errors is False
     assert test_schema.as_dict() == {}
