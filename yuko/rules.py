@@ -39,16 +39,16 @@ class Number(RuleInterface):
         self.only_positive = only_positive
         self._errors = []
 
-    def maximum_is_valid(self, value: int) -> bool:
+    def maximum_is_valid(self, value: typing.Any) -> bool:
         return value <= self.maximum
 
-    def minimum_is_valid(self, value: int) -> bool:
+    def minimum_is_valid(self, value: typing.Any) -> bool:
         return value >= self.minimum
 
-    def between_is_valid(self, value: int) -> bool:
+    def between_is_valid(self, value: typing.Any) -> bool:
         return self.between[0] <= value <= self.between[1]
 
-    def positive_is_valid(self, value: int) -> bool:
+    def positive_is_valid(self, value: typing.Any) -> bool:
         return value >= 0
 
     def is_correct_type(self, obj: typing.Any, type_: typing.Any) -> bool:
@@ -61,7 +61,6 @@ class Number(RuleInterface):
 class Integer(Number):
     # TODO: Add description for this class
 
-    # Base type of a correct value
     _INSTANCE = int
 
     # Error messages
@@ -76,12 +75,12 @@ class Integer(Number):
             allow_null: bool = False,
             only_positive: bool = False):
         super().__init__(
-            minimum=minimum,
-            maximum=maximum,
-            between=between,
-            required=required,
-            allow_null=allow_null,
-            only_positive=only_positive)
+            minimum,
+            maximum,
+            between,
+            required,
+            allow_null,
+            only_positive)
 
     def process(self, key: str, value: int) -> typing.List[str]:
         if self.allow_null and value is None:
@@ -122,7 +121,6 @@ class Integer(Number):
 class Float(Number):
     # TODO: Add description for this class
 
-    # Base type of a correct value
     _INSTANCE = float
 
     # Error messages
@@ -145,7 +143,36 @@ class Float(Number):
             only_positive)
 
     def process(self, key: str, value: float) -> typing.List[str]:
-        pass
+        if self.allow_null and value is None:
+            return
+
+        if not self.is_correct_type(value, self._INSTANCE):
+            self._errors.append(self.INVALID_TYPE_ERROR)
+            return
+
+        if self.only_positive and not self.positive_is_valid(value):
+            self._errors.append(f'{self.NOT_POSITIVE_ERROR}')
+
+        if self.maximum and not self.maximum_is_valid(value):
+            self._errors.append(
+                f'{self.MAXIMUM_LENGTH_ERROR} {self.maximum}'
+            )
+
+        if self.minimum and not self.minimum_is_valid(value):
+            self._errors.append(
+                f'{self.MINIMUM_LENGTH_ERROR} {self.minimum}'
+            )
+
+        if self.between and not self.between_is_valid(value):
+            self._errors.append(
+                f'must be between {self.between[0]}'
+                f' and {self.between[1]}'
+            )
+
+        if not self._errors:
+            return
+
+        return self._errors
 
     def key_not_present(self) -> typing.List[str]:
         return super().key_not_present()
