@@ -1,7 +1,7 @@
 """Validation type classes"""
 import typing
 
-from .rule import RuleInterface
+from ._rule import RuleInterface
 
 
 class Number(RuleInterface):
@@ -27,7 +27,7 @@ class Number(RuleInterface):
             minimum: int = None,
             maximum: int = None,
             between: tuple = None,
-            required: bool = None,
+            required: bool = False,
             allow_null: bool = False,
             only_positive: bool = False):
 
@@ -176,3 +176,49 @@ class Float(Number):
 
     def key_not_present(self) -> typing.List[str]:
         return super().key_not_present()
+
+
+class String(RuleInterface):
+    _INSTANCE = str
+
+    INVALID_TYPE_ERROR = f'must be a {_INSTANCE.__name__}ing'
+    INCORRECT_LENGTH_ERROR = f'must be not greater than'
+    KEY_NOT_PRESENT_ERROR = 'can not be blank'
+
+    __slots__ = (
+        'required',
+        'allow_null',
+        'length'
+    )
+
+    def __init__(
+            self,
+            required: bool = False,
+            allow_null: bool = False,
+            length: int = None):
+
+        self._errors = []
+        self.required = required
+        self.allow_null = allow_null
+        self.length = length
+
+    def process(self, key: typing.AnyStr, value: typing.Any) -> typing.List[str]:
+        if self.allow_null and value is None:
+            return
+
+        if not isinstance(value, self._INSTANCE):
+            self._errors.append(f'{self.INVALID_TYPE_ERROR}')
+            return self._errors
+
+        if self.length and not self.length > len(value):
+            self._errors.append(
+                f'{self.INCORRECT_LENGTH_ERROR} {self.length} characters'
+            )
+
+        if not self._errors:
+            return
+
+        return self._errors
+
+    def key_not_present(self):
+        return [self.KEY_NOT_PRESENT_ERROR]
